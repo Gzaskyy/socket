@@ -1,43 +1,51 @@
 import select
 import socket
-from data_check import *
-
 import sys
+import datetime
+from data_check import *
+from convert import *
 
 
 def check_port(argv1, argv2, argv3):
     try:
         if int(argv1) >= 64000 or int(argv1) <= 1024:
             return print("Port number_1 must between 1024 and 64000, please try again")
-
     except ValueError:
         print("Not a valid port1, please try again.")
+        exit(1)
 
     try:
         if int(argv2) >= 64000 or int(argv2) <= 1024:
             return print("Port number_2 must between 1024 and 64000, please try again")
     except ValueError:
         print("Not a valid port2, please try again.")
+        exit(1)
 
     try:
         if int(argv3) >= 64000 or int(argv3) <= 1024:
             return print("Port number_3 must between 1024 and 64000, please try again")
     except ValueError:
         print("Not a valid port3, please try again.")
+        exit(1)
 
-    return int(argv1), int(argv2), int(argv3)
+    if int(argv1) != int(argv2) and int(argv2) != int(argv3) and int(argv1) != int(argv3):
+        return int(argv1), int(argv2), int(argv3)
 
 
 def main(ports):
+    try:
+        port_1, port_2, port_3 = check_port(ports[0], ports[1], ports[2])
+    except TypeError:
+        print('Error occurred!')
+        exit(1)
 
-    port_1, port_2, port_3 = check_port(ports[0], ports[1], ports[2])
     sock_1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock_2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock_3 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    print("FOR PORT NUMBER:", port_1, " : all the info will be displayed in English")
-    print("FOR PORT NUMBER:", port_2, " : all the info will be displayed in Te reo Maori")
-    print("FOR PORT NUMBER:", port_3, " : all the info will be displayed in German")
+    print("FOR PORT NUMBER:", port_1, ": all the info will be displayed in English")
+    print("FOR PORT NUMBER:", port_2, ": all the info will be displayed in Te reo Maori")
+    print("FOR PORT NUMBER:", port_3, ": all the info will be displayed in German")
 
     address_1 = ('Zhis-Mac.local', port_1)  # In English
     address_2 = ('Zhis-Mac.local', port_2)  # In Te reo Maori
@@ -50,29 +58,46 @@ def main(ports):
     inputList = [sock_1, sock_2, sock_3]
 
     rd, wd, ex = select.select(inputList, [], [])
-    select.select(inputList, [], [])
+    # select.select(inputList, [], [])
     while 1:
 
-        # info_eng = bytearray(sock_1.recvfrom(1024))
+        global time_or_date
 
-        # data = bytearray(sock_1.recvfrom(1024)[0].to_array(6, 'big'))
+        for received_socket in rd:
 
-        # for received_socket in rd:
-        #     if received_socket == sock_1:
-        #         ''' Englis '''
-        #         if requset == 1:
-        #             '''data'''
-        #         elif request == 2:
-        #             '''time'''
-        #     elif received_socket == sock_3:
-        #         ''' Moroi'''
+            response_data = bytearray()
 
-        data, (ipaddress, portnumber) = sock_1.recvfrom(1024)
-        sock_2.recvfrom(1024)
-        sock_3.recvfrom(1024)
+            data, (ipaddress, portnumber) = received_socket.recvfrom(1024)
+            if requestLen_check(data) == 1:
+                if magicNo_check(data) == 1:
+                    response_data.append(data[0])
+                    response_data.append(data[1])
+                    if package_type_check(data) == 1:
+                        response_data.append(data[2])
+                        response_data.append(data[3])
+                        if request_type_check(data) == 1:
+                            """Date"""
+                            response_data.append(data[4])
+                            response_data.append(data[5])
+                            time_or_date = 1
+                        elif request_type_check(data) == 2:
+                            """Time"""
+                            response_data.append(data[4])
+                            response_data.append(data[5])
+                            time_or_date = 2
+                        else:
+                            return print("Wrong language type request")
+                    return print("Wrong package type")
+                else:
+                    print("Error magic number")
+            else:
+                print("packet length error")
+            if time_or_date == 1:
+                response_data.append(int_to_2byte(now.year)[0])
+                response_data.append(int_to_2byte(now.year)[1])
 
 
 if __name__ == '__main__':
     argvs = sys.argv[1:]
     main(argvs)
-
+    now = datetime.datetime.now()

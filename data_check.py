@@ -1,4 +1,5 @@
 def requestLen_check(data_received):
+    """Checks if the length is a fixed number 6"""
     if len(data_received) == 6:
         return 1
     else:
@@ -6,6 +7,7 @@ def requestLen_check(data_received):
 
 
 def magicNo_check(data_received):
+    """Checks if the magic number equals to 0x497E"""
     if data_received[0] == 0x49 and data_received[1] == 0x7e:
         return 1
     else:
@@ -13,6 +15,7 @@ def magicNo_check(data_received):
 
 
 def package_type_check(data_received):
+    """Checks if the package type equals to 0x0001"""
     if data_received[2] == 0x00 and data_received[3] == 0x01:
         return 1
     else:
@@ -20,10 +23,13 @@ def package_type_check(data_received):
 
 
 def request_type_check(data_received):
+    """Checks and obtain the time type"""
     if data_received[4] == 0x00 and data_received[5] == 0x01:
-        return 1
+        return 1  # Date
+    elif data_received[4] == 0x00 and data_received[5] == 0x02:
+        return 2  # Time
     else:
-        return 2
+        return 3
 
 
 def responseLen_check(data_received):
@@ -41,7 +47,7 @@ def response_pacType_check(data_received):
 
 
 def language_check(data_received):
-    """4-5"""
+    """check if language is valid and return it"""
 
     if data_received[4] == 0x00 and data_received[5] == 0x01:
         return 1  # English
@@ -56,7 +62,7 @@ def language_check(data_received):
 def year_check(data_received):
     year = int((bin(data_received[6][2:].zfill[8]) + bin(data_received[7][2:].zfill[8])), 2)
 
-    if year <= 2100:
+    if year >= 0 <= 2100:
         return year
     else:
         return 2
