@@ -9,3 +9,4 @@ message_encode = message.encode('utf-8')
 
 
 sock.sendto(message_encode, ('Zhis-Mac.local', 5002))
+
