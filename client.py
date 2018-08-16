@@ -49,27 +49,57 @@ def main(data):
     message.append(0x00)            # Add PacketType
     message.append(0x01)
 
-    if date_or_time == 'date':
+    if date_or_time == 'date':      # Add request type - date
         message.append(0x00)
         message.append(0x01)
-    elif date_or_time == 'time':
+    elif date_or_time == 'time':    # Add request type - time
         message.append(0x00)
         message.append(0x02)
 
     sock.sendto(message, (host_name, int(port_num)))
 
-    sock.bind(client_address)
+    received_data = [sock]
+    timeout = 1
 
-    received_data = sock
-
-    rd, wd, ex = select.select(received_data, [], [])
+    rd, wd, ex = select.select(received_data, [], [],timeout)
 
     while 1:
+
         for received_socket in rd:
-            data = received_socket.recvfrom(1024)
+
+            data, address = received_socket.recvfrom(1024)
+
+            print(len(data))
+            print(data)
 
             if responseLen_check(data) == 1:
                 if response_pacType_check(data) == 1:
+                    if language_check(data) == 1 or language_check(data) == 2 or language_check(data) == 3:
+                        if year_check(data) == 1:
+                            if month_check(data) == 1:
+                                if day_check(data) == 1:
+                                    if hour_check(data) == 1:
+                                        if minute_check(data) == 1:
+                                            if total_length_check(data) == 1:
+                                                print(data[13:].decode())
+                                            else:
+                                                print("text length check failed")
+                                        else:
+                                            print("Minute check failed")
+                                    else:
+                                        print("Hour check failed")
+                                else:
+                                    print("Day check failed")
+                            else:
+                                print("Month check failed")
+                        else:
+                            print("Year check failed")
+                    else:
+                        print("language check failed")
+                else:
+                    print("PacketType check failed")
+            else:
+                print("Response packet length check failed")
 
 
 

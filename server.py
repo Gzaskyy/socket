@@ -3,7 +3,6 @@ import socket
 import sys
 import datetime
 from data_check import *
-from convert import *
 from language_textual import *
 
 
@@ -34,6 +33,7 @@ def check_port(argv1, argv2, argv3):
 
 
 def main(ports):
+    global language_selection
     try:
         port_1, port_2, port_3 = check_port(ports[0], ports[1], ports[2])
     except TypeError:
@@ -69,7 +69,7 @@ def main(ports):
 
             data, (ipaddress, portnumber) = received_socket.recvfrom(1024)
 
-            if received_socket == sock_1:                                # Language selection
+            if received_socket == sock_1:                   # Language selection
                 language_selection = 1
             elif received_socket == sock_2:
                 language_selection = 2
@@ -86,6 +86,15 @@ def main(ports):
                         response_data.append(0x02)
                         if request_type_check(data) == 1:   # DT_request time or date selection
                             time_or_date = 'date'
+                            if language_selection == 1:     # Language 1:English 2:Mori 3:German
+                                response_data.append(0x00)
+                                response_data.append(0x01)
+                            elif language_selection == 2:
+                                response_data.append(0x00)
+                                response_data.append(0x02)
+                            elif language_selection == 3:
+                                response_data.append(0x00)
+                                response_data.append(0x03)
                         elif request_type_check(data) == 2:
                             time_or_date = 'time'
                             if language_selection == 1:     # Language 1:English 2:Mori 3:German
@@ -97,6 +106,8 @@ def main(ports):
                             elif language_selection == 3:
                                 response_data.append(0x00)
                                 response_data.append(0x03)
+                        else:
+                            print("Requested time/date Error")
                     else:
                         print("Wrong package type")
                         exit(1)
@@ -110,6 +121,7 @@ def main(ports):
             """Add year, month, day, hour, minute to byte array"""
             sys_now = datetime.datetime.now()
             response_data += int(bin(sys_now.year)[2:].zfill(16), 2).to_bytes(2, 'big')  # Add year
+
             response_data.append(sys_now.month)
             response_data.append(sys_now.day)
             response_data.append(sys_now.hour)
@@ -125,7 +137,7 @@ def main(ports):
             elif time_or_date == 'time' and language_selection == 1:    # English time
                 if len(to_english_time()) <= 255:
                     response_data.append(len(to_english_time()))
-                    response_data += to_english_date()
+                    response_data += to_english_time()
                 else:
                     print("Text length overflow!")
             elif time_or_date == 'date' and language_selection == 2:    # Mori date
@@ -153,10 +165,7 @@ def main(ports):
                 else:
                     print("Text length overflow!")
 
-            received_socket.sendto(data, (ipaddress, portnumber))
-
-            print(ipaddress, portnumber)
-            print(response_data)
+            received_socket.sendto(response_data, (ipaddress, portnumber))
 
 
 if __name__ == '__main__':

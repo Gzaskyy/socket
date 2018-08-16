@@ -60,7 +60,9 @@ def language_check(data_received):
 
 
 def year_check(data_received):
-    year = int((bin(data_received[6][2:].zfill[8]) + bin(data_received[7][2:].zfill[8])), 2)
+    """check year under 2100 above 0"""
+
+    year = int(bin(data_received[6])[2:].zfill(8) + bin(data_received[7])[2:].zfill(8),2)
 
     if year >= 0 <= 2100:
         return 1
@@ -69,43 +71,48 @@ def year_check(data_received):
 
 
 def month_check(data_received):
-    month = int(bin(data_received[8][2:].zfill[8]), 2)
+    """check month in range 1-12"""
+    month = int(bin(data_received[8])[2:].zfill(8), 2)
 
     if 12 >= month >= 1:
-        return month
+        return 1
     else:
         return 2
 
 
 def day_check(data_received):
-    day = int(bin(data_received[9][2:].zfill[8]), 2)
+    """check day in range 1-31"""
+    day = int(bin(data_received[9])[2:].zfill(8), 2)
 
     if 31 >= day >= 1:
-        return day
+        return 1
     else:
         return 2
 
 
 def hour_check(data_received):
-    hour = int(bin(data_received[10][2:].zfill[8]), 2)
+    """check hour in range 0-23"""
+    hour = int(bin(data_received[10])[2:].zfill(8), 2)
 
     if 23 >= hour >= 0:
-        return hour
+        return 1
     else:
         return 2
 
 
 def minute_check(data_received):
-    minute = int(bin(data_received[11][2:].zfill[8]), 2)
+    """check minute in range 0-59"""
+    minute = int(bin(data_received[11])[2:].zfill(8), 2)
 
     if 59 >= minute >= 0:
-        return minute
+        return 1
     else:
         return 2
 
 
 def total_length_check(data_received):
-    total_length = int(bin(data_received[12][2:].zfill[8]), 2)
+    """check the text length"""
+    total_length = int(bin(data_received[12])[2:].zfill(8), 2)
 
     if total_length == len(data_received[13:]):
         return 1
