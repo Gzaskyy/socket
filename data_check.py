@@ -63,7 +63,7 @@ def year_check(data_received):
     year = int((bin(data_received[6][2:].zfill[8]) + bin(data_received[7][2:].zfill[8])), 2)
 
     if year >= 0 <= 2100:
-        return year
+        return 1
     else:
         return 2
 
@@ -107,7 +107,7 @@ def minute_check(data_received):
 def total_length_check(data_received):
     total_length = int(bin(data_received[12][2:].zfill[8]), 2)
 
-    if total_length == len(data_received):
+    if total_length == len(data_received[13:]):
         return 1
     else:
         return 2

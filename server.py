@@ -4,6 +4,7 @@ import sys
 import datetime
 from data_check import *
 from convert import *
+from language_textual import *
 
 
 def check_port(argv1, argv2, argv3):
@@ -43,13 +44,13 @@ def main(ports):
     sock_2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock_3 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    print("FOR PORT NUMBER:", port_1, ": all the info will be displayed in English")
-    print("FOR PORT NUMBER:", port_2, ": all the info will be displayed in Te reo Maori")
-    print("FOR PORT NUMBER:", port_3, ": all the info will be displayed in German")
+    print("FOR PORT NUMBER:", port_1, ": all info will be displayed in English")
+    print("FOR PORT NUMBER:", port_2, ": all info will be displayed in Te reo Maori")
+    print("FOR PORT NUMBER:", port_3, ": all info will be displayed in German")
 
-    address_1 = ('Zhis-Mac.local', port_1)  # In English
-    address_2 = ('Zhis-Mac.local', port_2)  # In Te reo Maori
-    address_3 = ('Zhis-Mac.local', port_3)  # In German
+    address_1 = (socket.gethostname(), int(port_1))  # In English
+    address_2 = (socket.gethostname(), int(port_2))  # In Te reo Maori
+    address_3 = (socket.gethostname(), int(port_3))  # In German
 
     sock_1.bind(address_1)
     sock_2.bind(address_2)
@@ -61,40 +62,101 @@ def main(ports):
     # select.select(inputList, [], [])
     while 1:
 
-        global time_or_date
-
         for received_socket in rd:
 
             response_data = bytearray()
+            time_or_date = ''
 
             data, (ipaddress, portnumber) = received_socket.recvfrom(1024)
-            if requestLen_check(data) == 1:
-                if magicNo_check(data) == 1:
+
+            if received_socket == sock_1:                                # Language selection
+                language_selection = 1
+            elif received_socket == sock_2:
+                language_selection = 2
+            elif received_socket == sock_3:
+                language_selection = 3
+            else:
+                print("Wrong language selection")
+            if requestLen_check(data) == 1:                 # DT_request length check
+                if magicNo_check(data) == 1:                # DT_request MagicNo check
                     response_data.append(data[0])
                     response_data.append(data[1])
-                    if package_type_check(data) == 1:
-                        response_data.append(data[2])
-                        response_data.append(data[3])
-                        if request_type_check(data) == 1:
-                            """Date"""
-                            response_data.append(data[4])
-                            response_data.append(data[5])
-                            time_or_date = 1
+                    if package_type_check(data) == 1:       # DT_request package type check
+                        response_data.append(0x00)          # DT_response type added
+                        response_data.append(0x02)
+                        if request_type_check(data) == 1:   # DT_request time or date selection
+                            time_or_date = 'date'
                         elif request_type_check(data) == 2:
-                            """Time"""
-                            response_data.append(data[4])
-                            response_data.append(data[5])
-                            time_or_date = 2
-                        else:
-                            return print("Wrong language type request")
-                    return print("Wrong package type")
+                            time_or_date = 'time'
+                            if language_selection == 1:     # Language 1:English 2:Mori 3:German
+                                response_data.append(0x00)
+                                response_data.append(0x01)
+                            elif language_selection == 2:
+                                response_data.append(0x00)
+                                response_data.append(0x02)
+                            elif language_selection == 3:
+                                response_data.append(0x00)
+                                response_data.append(0x03)
+                    else:
+                        print("Wrong package type")
+                        exit(1)
                 else:
                     print("Error magic number")
+                    exit(1)
             else:
                 print("packet length error")
-            if time_or_date == 1:
-                response_data.append(int_to_2byte(now.year)[0])
-                response_data.append(int_to_2byte(now.year)[1])
+                exit(1)
+
+            """Add year, month, day, hour, minute to byte array"""
+            sys_now = datetime.datetime.now()
+            response_data += int(bin(sys_now.year)[2:].zfill(16), 2).to_bytes(2, 'big')  # Add year
+            response_data.append(sys_now.month)
+            response_data.append(sys_now.day)
+            response_data.append(sys_now.hour)
+            response_data.append(sys_now.minute)
+
+            """generate requested text type"""
+            if time_or_date == 'date' and language_selection == 1:      # English date
+                if len(to_english_date()) <= 255:
+                    response_data.append(len(to_english_date()))
+                    response_data += to_english_date()
+                else:
+                    print("Text length overflow!")
+            elif time_or_date == 'time' and language_selection == 1:    # English time
+                if len(to_english_time()) <= 255:
+                    response_data.append(len(to_english_time()))
+                    response_data += to_english_date()
+                else:
+                    print("Text length overflow!")
+            elif time_or_date == 'date' and language_selection == 2:    # Mori date
+                if len(to_mori_date()) <= 255:
+                    response_data.append(len(to_mori_date()))
+                    response_data += to_mori_date()
+                else:
+                    print("Text length overflow!")
+            elif time_or_date == 'time' and language_selection == 2:    # Mori time
+                if len(to_mori_time()) <= 255:
+                    response_data.append(len(to_mori_time()))
+                    response_data += to_mori_time()
+                else:
+                    print("Text length overflow!")
+            elif time_or_date == 'date' and language_selection == 3:    # German date
+                if len(to_german_date()) <= 255:
+                    response_data.append(len(to_german_date()))
+                    response_data += to_german_date()
+                else:
+                    print("Text length overflow!")
+            elif time_or_date == 'time' and language_selection == 3:    # German time
+                if len(to_german_time()) <= 255:
+                    response_data.append(len(to_german_time()))
+                    response_data += to_german_time()
+                else:
+                    print("Text length overflow!")
+
+            received_socket.sendto(data, (ipaddress, portnumber))
+
+            print(ipaddress, portnumber)
+            print(response_data)
 
 
 if __name__ == '__main__':

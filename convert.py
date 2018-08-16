@@ -1,3 +1,6 @@
+import datetime
+
+
 def byte_to_int(args):
     """convert byte data into int"""
     length = len(args)
