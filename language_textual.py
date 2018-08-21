@@ -2,7 +2,7 @@ import datetime
 
 now = datetime.datetime.now()
 
-"""Month dictionary"""
+"""Month dictionary, 3 kinds languages"""
 month_english = {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June',
                  7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November',
                  12: 'December'}
@@ -22,25 +22,31 @@ if __name__ == '__main__':
 
 
 def to_english_date():
+    """Returns the system date in English"""
     return ("Today's date is " + month_english[now.month] + " " + str(now.day) + ", " + str(now.year)).encode("utf-8")
 
 
 def to_english_time():
+    """Returns the system time in English"""
     return ("The current time is " + str(now.hour) + ":" + str(now.minute)).encode("utf-8")
 
 
 def to_mori_date():
+    """Returns the system date in Mori"""
     return ("Ko te ra o tenei ra ko " + month_mori[now.month] + " " + str(now.day) + ", " + str(now.year)).encode(
         "utf-8")
 
 
 def to_mori_time():
+    """Returns the system time in Mori"""
     return ("Ko te wa o tenei wa " + str(now.hour) + ":" + str(now.minute)).encode("utf-8")
 
 
 def to_german_date():
+    """Returns the system date in German"""
     return ("Heute ist der " + month_german[now.month] + " " + str(now.day) + ". " + str(now.year)).encode("utf-8")
 
 
 def to_german_time():
+    """Returns the system time in German"""
     return ("Die Uhrzeit ist " + str(now.hour) + ":" + str(now.minute)).encode("utf-8")

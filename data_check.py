@@ -1,3 +1,6 @@
+"""A collection of data content or standard check functions"""
+
+
 def requestLen_check(data_received):
     """Checks if the length is a fixed number 6"""
     if len(data_received) == 6:
@@ -23,7 +26,7 @@ def package_type_check(data_received):
 
 
 def request_type_check(data_received):
-    """Checks and obtain the time type"""
+    """Check and obtain the time type"""
     if data_received[4] == 0x00 and data_received[5] == 0x01:
         return 1  # Date
     elif data_received[4] == 0x00 and data_received[5] == 0x02:
@@ -33,6 +36,7 @@ def request_type_check(data_received):
 
 
 def responseLen_check(data_received):
+    """Check the responded data length"""
     if len(data_received) >= 13:
         return 1
     else:
@@ -40,6 +44,7 @@ def responseLen_check(data_received):
 
 
 def response_pacType_check(data_received):
+    """Check the responded packet type"""
     if data_received[2] == 0x00 and data_received[3] == 0x02:
         return 1
     else:
@@ -111,7 +116,7 @@ def minute_check(data_received):
 
 
 def total_length_check(data_received):
-    """check the text length"""
+    """check the returned text length"""
     total_length = int(bin(data_received[12])[2:].zfill(8), 2)
 
     if total_length == len(data_received[13:]):
